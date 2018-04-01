@@ -23,6 +23,13 @@ class VAEp:
         # build graph
         self.model.build_model()
 
+        """ Loss Function """
+        # encoding
+        # mu, sigma = self.model.encoder(self.inputs, is_training=False, reuse=True)
+
+        # sampling by re-parameterization technique
+        # self.z_fn = mu + sigma * tf.random_normal(tf.shape(mu), 0, 1, dtype=tf.float32)
+
         # launch the graph in a session
         self.model.saver = tf.train.Saver()
         could_load, checkpoint_counter = self.model.load(filename)
@@ -31,53 +38,14 @@ class VAEp:
         # self.invert_models = def_invert_models(self.net, layer='conv4', alpha=0.002)
 
     def encode_images(self, images, cond=None):
-        # print("images: ", images.shape, images[0][0])
-        rec, zs, _  = invert_images_opt(self.invert_models, images)
-
-        # pixels = (255 * images).astype(np.uint8)
-        # pixels = np.swapaxes(pixels,1,2)
-        # pixels = np.swapaxes(pixels,2,3)
-        # # print("SHAPE: {} {}".format(pixels.shape, pixels.dtype))
-        # _, zs, _  = invert_images_CNN_opt(self.invert_models, pixels, solver='cnn_opt', npx=self.model_G.npx)
-        # print(zs)
-        # print("Zs SHAPE: {}".format(zs.shape))
-        return zs
+        channel_last = np.rollaxis(images, 1, 4)
+        z = self.session.run(self.model.mu, feed_dict={self.model.inputs: channel_last})
+        return z
 
     def get_zdim(self):
-        # ?
         return self.model.z_dim
 
     def sample_at(self, z):
-        # tot_num_samples = min(self.model.sample_num, self.model.batch_size)
-        # image_frame_dim = int(np.floor(np.sqrt(tot_num_samples)))
-
-        self.model.batch_size = len(z)
         samples = self.session.run(self.model.fake_images, feed_dict={self.model.z: z})
         channel_first = np.rollaxis(samples, 3, 1)
-
         return channel_first
-        # save_images(samples[:image_frame_dim * image_frame_dim, :, :, :], [image_frame_dim, image_frame_dim],
-        #             'outputs/test/sample_01.png')
-
-        # mapped_latents = z.astype(np.float32)
-        # samples = self.net.gen_fn(mapped_latents, mapped_latents)
-        # samples = np.clip(samples, 0, 1)
-
-        # self.net.example_latents = z.astype(np.float32)
-        # self.net.example_labels = self.net.example_latents
-        # self.net.latents_var = T.TensorType('float32', [False] * len(self.net.example_latents.shape))('latents_var')
-        # self.net.labels_var  = T.TensorType('float32', [False] * len(self.net.example_latents.shape)) ('labels_var')
-
-        # self.net.images_expr = self.net.G.eval(self.net.example_latents, self.net.labels_var, ignore_unused_inputs=True)
-        # self.net.images_expr = misc.adjust_dynamic_range(self.net.images_expr, [-1,1], [0,1])
-
-        # if not self.have_compiled:
-        #     train.imgapi_compile_gen_fn(self.net)
-        #     self.have_compiled = True
-
-        # samples = self.net.gen_fn(self.net.example_latents, self.net.example_labels)
-        # samples = np.clip(samples, 0, 1)
-
-        # print("Samples: ", samples.shape)
-        # samples = (samples + 1.0) / 2.0
-        # return samples
