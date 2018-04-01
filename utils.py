@@ -14,6 +14,7 @@ import os, gzip
 
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
+from PIL import Image
 
 def load_mnist(dataset_name):
     data_dir = os.path.join("./data", dataset_name)
@@ -42,6 +43,27 @@ def load_mnist(dataset_name):
 
     X = np.concatenate((trX, teX), axis=0)
     y = np.concatenate((trY, teY), axis=0).astype(np.int)
+
+    # print("----------> SAVING")
+    # for i in range(len(X)):
+    #     img_name = f'data/mnist/images/{(i+1):05d}.png'
+    #     im = Image.fromarray((X[i]).reshape(28,28).astype(np.uint8))
+    #     im = im.convert('L')
+    #     im.save(img_name)
+
+    # with open('data/mnist/labels.txt', 'w+') as the_file:
+    #     for i in range(len(y)):
+    #         the_file.write(f'{(i+1):05d}.png\t{y[i]}\n')
+
+    # with open('data/mnist/splits.txt', 'w+') as the_file:
+    #     for i in range(len(y)):
+    #         if (i < 50000):
+    #             split = 0
+    #         elif (i < 60000):
+    #             split = 1
+    #         else:
+    #             split = 2
+    #         the_file.write(f'{(i+1):05d}.png\t{split}\n')
 
     seed = 547
     np.random.seed(seed)
