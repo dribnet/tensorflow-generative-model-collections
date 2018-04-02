@@ -15,6 +15,85 @@ import os, gzip
 import tensorflow as tf
 import tensorflow.contrib.slim as slim
 from PIL import Image
+from scipy.misc import imread
+
+def load_fonts():
+    data_dir = os.path.join("/develop/data", "fonts")
+
+    splits_file = os.path.join(data_dir, "splits.txt")
+    labels_file = os.path.join(data_dir, "numlabels.txt")
+    images_dir = os.path.join(data_dir, "images28")
+
+    with open(splits_file) as f:
+        lines = f.readlines()
+        split_lines = [l.rstrip().split() for l in lines]
+        train_files = [s[0] for s in split_lines if s[1] == "0"]
+        # valid_files = [s[0] for s in split_lines if s[1] == "1"]
+        # test_files = [s[0] for s in split_lines if s[1] == "2"]
+
+    labels = {}
+    with open(splits_file) as f:
+        lines = f.readlines()
+        split_lines = [l.rstrip().split() for l in lines]
+        for s in split_lines:
+            labels[s[0]] = int(s[1])
+
+    trX = []
+    trY = []
+    for t in train_files:
+        trX.append(imread(os.path.join(images_dir, t)))
+        trY.append(labels[t])
+    num_train = len(train_files)
+    trX = np.asarray(trX).reshape(num_train, 28, 28, 1)
+    trY = np.asarray(trY).reshape(num_train).astype(np.int)
+
+    # teX = []
+    # teY = []
+    # for t in valid_files:
+    #     teX.append(imread(t))
+    #     teY.append(labels[t])
+    # num_valid = len(valid_files)
+    # teX = np.array(teX).reshape(num_valid, 28, 28, 1)
+    # teY = np.array(teY).reshape(num_valid)
+
+    X = trX
+    y = trY
+
+    # X = np.concatenate((trX, teX), axis=0)
+    # y = np.concatenate((trY, teY), axis=0).astype(np.int)
+
+    # print("----------> SAVING")
+    # for i in range(len(X)):
+    #     img_name = f'data/mnist/images/{(i+1):05d}.png'
+    #     im = Image.fromarray((X[i]).reshape(28,28).astype(np.uint8))
+    #     im = im.convert('L')
+    #     im.save(img_name)
+
+    # with open('data/mnist/labels.txt', 'w+') as the_file:
+    #     for i in range(len(y)):
+    #         the_file.write(f'{(i+1):05d}.png\t{y[i]}\n')
+
+    # with open('data/mnist/splits.txt', 'w+') as the_file:
+    #     for i in range(len(y)):
+    #         if (i < 50000):
+    #             split = 0
+    #         elif (i < 60000):
+    #             split = 1
+    #         else:
+    #             split = 2
+    #         the_file.write(f'{(i+1):05d}.png\t{split}\n')
+
+    seed = 547
+    np.random.seed(seed)
+    np.random.shuffle(X)
+    np.random.seed(seed)
+    np.random.shuffle(y)
+
+    y_vec = np.zeros((len(y), 62), dtype=np.float)
+    for i, label in enumerate(y):
+        y_vec[i, y[i]] = 1.0
+
+    return X / 255., y_vec
 
 def load_mnist(dataset_name):
     data_dir = os.path.join("./data", dataset_name)

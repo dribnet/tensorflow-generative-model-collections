@@ -22,7 +22,7 @@ class VAE(object):
         self.epoch = epoch
         self.batch_size = batch_size
 
-        if dataset_name == 'mnist' or dataset_name == 'fashion-mnist':
+        if dataset_name == 'mnist' or dataset_name == 'fashion-mnist' or dataset_name == 'fonts':
             # parameters
             self.input_height = 28
             self.input_width = 28
@@ -39,8 +39,11 @@ class VAE(object):
             # test
             self.sample_num = 64  # number of generated images to be saved
 
-            # load mnist
-            self.data_X, self.data_y = load_mnist(self.dataset_name)
+            if dataset_name == 'fonts':
+                self.data_X, self.data_y = load_fonts()
+            else:
+                # load mnist
+                self.data_X, self.data_y = load_mnist(self.dataset_name)
 
             # get number of batches for a single epoch
             self.num_batches = len(self.data_X) // self.batch_size
